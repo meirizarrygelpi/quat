@@ -145,9 +145,9 @@ func (z *Minkowski) Sub(x, y *Minkowski) *Minkowski {
 // The multiplication rule for the basis elements s := Minkowski{0, 1, 0, 0},
 // t := Minkowski{0, 0, 1, 0}, and u := Minkowski{0, 0, 0, 1} is:
 // 		Mul(s, s) = Mul(t, t) = Mul(u, u) = Minkowski{1, 0, 0, 0}
-// 		Mul(s, t) = -Mul(t, s) = u
-// 		Mul(t, u) = -Mul(u, t) = s
-// 		Mul(u, s) = -Mul(s, u) = t
+// 		Mul(s, t) = -Mul(t, s) = +u
+// 		Mul(t, u) = -Mul(u, t) = +s
+// 		Mul(u, s) = -Mul(s, u) = +t
 func (z *Minkowski) Mul(x, y *Minkowski) *Minkowski {
 	p := new(Minkowski).Copy(x)
 	q := new(Minkowski).Copy(y)

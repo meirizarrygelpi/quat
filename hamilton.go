@@ -145,9 +145,9 @@ func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
 // The multiplication rule for the basis elements i := Hamilton{0, 1, 0, 0},
 // j := Hamilton{0, 0, 1, 0}, and k := Hamilton{0, 0, 0, 1} is:
 // 		Mul(i, i) = Mul(j, j) = Mul(k, k) = Hamilton{-1, 0, 0, 0}
-// 		Mul(i, j) = -Mul(j, i) = k
-// 		Mul(j, k) = -Mul(k, j) = i
-// 		Mul(k, i) = -Mul(i, k) = j
+// 		Mul(i, j) = -Mul(j, i) = +k
+// 		Mul(j, k) = -Mul(k, j) = +i
+// 		Mul(k, i) = -Mul(i, k) = +j
 func (z *Hamilton) Mul(x, y *Hamilton) *Hamilton {
 	p := new(Hamilton).Copy(x)
 	q := new(Hamilton).Copy(y)
