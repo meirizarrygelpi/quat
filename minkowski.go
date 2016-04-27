@@ -8,14 +8,14 @@ import (
 
 var symbM = [4]string{"", "s", "t", "u"}
 
-// An M represents a Minkowski quaternion (also known as a hyperbolic
+// A Minkowski represents a Minkowski quaternion (also known as a hyperbolic
 // quaternion) as an ordered list of four float64 values.
-type M [4]float64
+type Minkowski [4]float64
 
-// String returns the string representation of an M value. If
-// z corresponds to the Minkowski quaternion a + bs + ct + du, then the string
+// String returns the string representation of a Minkowski value. If z
+// corresponds to the Minkowski quaternion a + bs + ct + du, then the string
 // is "(a+bs+ct+du)", similar to complex128 values.
-func (z *M) String() string {
+func (z *Minkowski) String() string {
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", z[0])
@@ -37,7 +37,7 @@ func (z *M) String() string {
 }
 
 // Equals returns true if y and z are equal.
-func (z *M) Equals(y *M) bool {
+func (z *Minkowski) Equals(y *Minkowski) bool {
 	for i, v := range y {
 		if notEquals(v, z[i]) {
 			return false
@@ -47,16 +47,17 @@ func (z *M) Equals(y *M) bool {
 }
 
 // Copy copies x onto z, and returns z.
-func (z *M) Copy(x *M) *M {
+func (z *Minkowski) Copy(x *Minkowski) *Minkowski {
 	for i, v := range x {
 		z[i] = v
 	}
 	return z
 }
 
-// NewM returns a pointer to an M value made from four given float64 values.
-func NewM(a, b, c, d float64) *M {
-	z := new(M)
+// NewMinkowski returns a pointer to an Minkowski value made from four given
+// float64 values.
+func NewMinkowski(a, b, c, d float64) *Minkowski {
+	z := new(Minkowski)
 	z[0] = a
 	z[1] = b
 	z[2] = c
@@ -64,8 +65,8 @@ func NewM(a, b, c, d float64) *M {
 	return z
 }
 
-// IsMInf returns true if any of the components of z are infinite.
-func (z *M) IsMInf() bool {
+// IsMinkowskiInf returns true if any of the components of z are infinite.
+func (z *Minkowski) IsMinkowskiInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return true
@@ -74,13 +75,14 @@ func (z *M) IsMInf() bool {
 	return false
 }
 
-// MInf returns a pointer to a Minkowski quaternionic infinity value.
-func MInf(a, b, c, d int) *M {
-	return NewM(math.Inf(a), math.Inf(b), math.Inf(c), math.Inf(d))
+// MinkowskiInf returns a pointer to a Minkowski quaternionic infinity value.
+func MinkowskiInf(a, b, c, d int) *Minkowski {
+	return NewMinkowski(math.Inf(a), math.Inf(b), math.Inf(c), math.Inf(d))
 }
 
-// IsMNaN returns true if any component of z is NaN and neither is an infinity.
-func (z *M) IsMNaN() bool {
+// IsMinkowskiNaN returns true if any component of z is NaN and neither is an
+// infinity.
+func (z *Minkowski) IsMinkowskiNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return false
@@ -94,14 +96,14 @@ func (z *M) IsMNaN() bool {
 	return false
 }
 
-// MNaN returns a pointer to a Minkowski quaternionic NaN value.
-func MNaN() *M {
+// MinkowskiNaN returns a pointer to a Minkowski quaternionic NaN value.
+func MinkowskiNaN() *Minkowski {
 	nan := math.NaN()
-	return NewM(nan, nan, nan, nan)
+	return NewMinkowski(nan, nan, nan, nan)
 }
 
 // Scal sets z equal to y scaled by a, and returns z.
-func (z *M) Scal(y *M, a float64) *M {
+func (z *Minkowski) Scal(y *Minkowski, a float64) *Minkowski {
 	for i, v := range y {
 		z[i] = a * v
 	}
@@ -109,12 +111,12 @@ func (z *M) Scal(y *M, a float64) *M {
 }
 
 // Neg sets z equal to the negative of y, and returns z.
-func (z *M) Neg(y *M) *M {
+func (z *Minkowski) Neg(y *Minkowski) *Minkowski {
 	return z.Scal(y, -1)
 }
 
 // Conj sets z equal to the conjugate of y, and returns z.
-func (z *M) Conj(y *M) *M {
+func (z *Minkowski) Conj(y *Minkowski) *Minkowski {
 	z[0] = y[0]
 	for i, v := range y[1:] {
 		z[i+1] = -v
@@ -123,7 +125,7 @@ func (z *M) Conj(y *M) *M {
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
-func (z *M) Add(x, y *M) *M {
+func (z *Minkowski) Add(x, y *Minkowski) *Minkowski {
 	for i, v := range x {
 		z[i] = v + y[i]
 	}
@@ -131,7 +133,7 @@ func (z *M) Add(x, y *M) *M {
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
-func (z *M) Sub(x, y *M) *M {
+func (z *Minkowski) Sub(x, y *Minkowski) *Minkowski {
 	for i, v := range x {
 		z[i] = v - y[i]
 	}
@@ -140,15 +142,15 @@ func (z *M) Sub(x, y *M) *M {
 
 // Mul sets z equal to the product of x and y, and returns z.
 //
-// The multiplication rule for the basis elements s := M{0, 1, 0, 0},
-// t := M{0, 0, 1, 0}, and u := M{0, 0, 0, 1} is:
-// 		Mul(s, s) = Mul(t, t) = Mul(u, u) = M{1, 0, 0, 0}
+// The multiplication rule for the basis elements s := Minkowski{0, 1, 0, 0},
+// t := Minkowski{0, 0, 1, 0}, and u := Minkowski{0, 0, 0, 1} is:
+// 		Mul(s, s) = Mul(t, t) = Mul(u, u) = Minkowski{1, 0, 0, 0}
 // 		Mul(s, t) = -Mul(t, s) = u
 // 		Mul(t, u) = -Mul(u, t) = s
 // 		Mul(u, s) = -Mul(s, u) = t
-func (z *M) Mul(x, y *M) *M {
-	p := new(M).Copy(x)
-	q := new(M).Copy(y)
+func (z *Minkowski) Mul(x, y *Minkowski) *Minkowski {
+	p := new(Minkowski).Copy(x)
+	q := new(Minkowski).Copy(y)
 	z[0] = (p[0] * q[0]) + (p[1] * q[1]) + (p[2] * q[2]) + (p[3] * q[3])
 	z[1] = (p[0] * q[1]) + (p[1] * q[0]) + (p[2] * q[3]) - (p[3] * q[2])
 	z[2] = (p[0] * q[2]) - (p[1] * q[3]) + (p[2] * q[0]) + (p[3] * q[1])
@@ -157,40 +159,58 @@ func (z *M) Mul(x, y *M) *M {
 }
 
 // Commutator sets z equal to the commutator of x and y, and returns z.
-func (z *M) Commutator(x, y *M) *M {
-	return z.Sub(new(M).Mul(x, y), new(M).Mul(y, x))
+func (z *Minkowski) Commutator(x, y *Minkowski) *Minkowski {
+	return z.Sub(new(Minkowski).Mul(x, y), new(Minkowski).Mul(y, x))
+}
+
+// Associator sets z equal to the associator of w, x, and y, and returns z.
+func (z *Minkowski) Associator(w, x, y *Minkowski) *Minkowski {
+	return z.Sub(
+		new(Minkowski).Mul(new(Minkowski).Mul(w, x), y),
+		new(Minkowski).Mul(w, new(Minkowski).Mul(x, y)),
+	)
+}
+
+// AlternatorL sets z equal to the left alternator of x and y, and returns z.
+func (z *Minkowski) AlternatorL(x, y *Minkowski) *Minkowski {
+	return z.Associator(x, x, y)
+}
+
+// AlternatorR sets z equal to the right alternator of x and y, and returns z.
+func (z *Minkowski) AlternatorR(x, y *Minkowski) *Minkowski {
+	return z.Associator(x, y, y)
 }
 
 // Quad returns the quadrance of z, which can be either positive, negative or
 // zero.
-func (z *M) Quad() float64 {
-	return (new(M).Mul(z, new(M).Conj(z)))[0]
+func (z *Minkowski) Quad() float64 {
+	return (new(Minkowski).Mul(z, new(Minkowski).Conj(z)))[0]
 }
 
 // IsZeroDiv returns true if z is a zero divisor (i.e. it has zero quadrance).
-func (z *M) IsZeroDiv() bool {
+func (z *Minkowski) IsZeroDiv() bool {
 	return !notEquals(z.Quad(), 0)
 }
 
 // Inv sets z equal to the inverse of x, and returns z. If x is a zero divisor,
 // then Inv panics.
-func (z *M) Inv(x *M) *M {
+func (z *Minkowski) Inv(x *Minkowski) *Minkowski {
 	if x.IsZeroDiv() {
 		panic("inverse of zero divisor")
 	}
-	return z.Scal(new(M).Conj(x), 1/x.Quad())
+	return z.Scal(new(Minkowski).Conj(x), 1/x.Quad())
 }
 
 // Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
 // divisor, then Quo panics.
-func (z *M) Quo(x, y *M) *M {
+func (z *Minkowski) Quo(x, y *Minkowski) *Minkowski {
 	if y.IsZeroDiv() {
 		panic("denominator is zero divisor")
 	}
-	return z.Scal(new(M).Mul(x, new(M).Conj(y)), 1/y.Quad())
+	return z.Scal(new(Minkowski).Mul(x, new(Minkowski).Conj(y)), 1/y.Quad())
 }
 
 // IsIndempotent returns true if z is an indempotent (i.e. if z = z*z).
-func (z *M) IsIndempotent() bool {
-	return z.Equals(new(M).Mul(z, z))
+func (z *Minkowski) IsIndempotent() bool {
+	return z.Equals(new(Minkowski).Mul(z, z))
 }
