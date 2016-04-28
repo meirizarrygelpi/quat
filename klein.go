@@ -220,3 +220,51 @@ func (z *Klein) IsNilpotent(n int) bool {
 	}
 	return false
 }
+
+// Rect sets z equal to a Klein value made from given curvilinear coordinates
+// and quadrance sign, and returns z.
+func (z *Klein) Rect(r, ξ, θ1, θ2 float64, sign int) *Klein {
+	if sign > 0 {
+		z[0] = r * math.Cosh(ξ) * math.Cos(θ1)
+		z[1] = r * math.Cosh(ξ) * math.Sin(θ1)
+		z[2] = r * math.Sinh(ξ) * math.Cos(θ2)
+		z[3] = r * math.Sinh(ξ) * math.Sin(θ2)
+		return z
+	}
+	if sign < 0 {
+		z[0] = r * math.Sinh(ξ) * math.Cos(θ1)
+		z[1] = r * math.Sinh(ξ) * math.Sin(θ1)
+		z[2] = r * math.Cosh(ξ) * math.Cos(θ2)
+		z[3] = r * math.Cosh(ξ) * math.Sin(θ2)
+		return z
+	}
+	z[0] = r * math.Cos(θ1)
+	z[1] = r * math.Sin(θ1)
+	z[2] = r * math.Cos(θ2)
+	z[3] = r * math.Sin(θ2)
+	return z
+}
+
+// Curv returns the curvilinear coordinates of a Klein value, along with the
+// sign of the quadrance.
+func (z *Klein) Curv() (r, ξ, θ1, θ2 float64, sign int) {
+	quad := z.Quad()
+	θ1 = math.Atan(z[1] / z[0])
+	θ2 = math.Atan(z[3] / z[2])
+	if quad > 0 {
+		r = math.Sqrt(quad)
+		ξ = math.Atanh(math.Hypot(z[2], z[3]) / math.Hypot(z[0], z[1]))
+		sign = +1
+		return
+	}
+	if quad < 0 {
+		r = math.Sqrt(-quad)
+		ξ = math.Atanh(math.Hypot(z[0], z[1]) / math.Hypot(z[2], z[3]))
+		sign = -1
+		return
+	}
+	r = math.Hypot(z[0], z[1])
+	ξ = math.NaN()
+	sign = 0
+	return
+}
