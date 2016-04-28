@@ -214,3 +214,53 @@ func (z *Minkowski) Quo(x, y *Minkowski) *Minkowski {
 func (z *Minkowski) IsIndempotent() bool {
 	return z.Equals(new(Minkowski).Mul(z, z))
 }
+
+// RectMinkowski returns a Minkowski value made from given curvilinear
+// coordinates and quadrance sign.
+func RectMinkowski(r, ξ, θ1, θ2 float64, sign int) *Minkowski {
+	z := new(Minkowski)
+	if sign > 0 {
+		z[0] = r * math.Cosh(ξ)
+		z[1] = r * math.Sinh(ξ) * math.Cos(θ1)
+		z[2] = r * math.Sinh(ξ) * math.Sin(θ1) * math.Cos(θ2)
+		z[3] = r * math.Sinh(ξ) * math.Sin(θ1) * math.Sin(θ2)
+		return z
+	}
+	if sign < 0 {
+		z[0] = r * math.Sinh(ξ)
+		z[1] = r * math.Cosh(ξ) * math.Cos(θ1)
+		z[2] = r * math.Cosh(ξ) * math.Sin(θ1) * math.Cos(θ2)
+		z[3] = r * math.Cosh(ξ) * math.Sin(θ1) * math.Sin(θ2)
+		return z
+	}
+	z[0] = r
+	z[1] = r * math.Cos(θ1)
+	z[2] = r * math.Sin(θ1) * math.Cos(θ2)
+	z[3] = r * math.Sin(θ1) * math.Sin(θ2)
+	return z
+}
+
+// Curv returns the curvilinear coordinates of a Minkowski value, along with
+// the sign of the quadrance.
+func (z *Minkowski) Curv() (r, ξ, θ1, θ2 float64, sign int) {
+	quad := z.Quad()
+	h := math.Hypot(z[2], z[3])
+	θ1 = math.Atan2(z[1], h)
+	θ2 = math.Atan2(z[3], z[2])
+	if quad > 0 {
+		r = math.Sqrt(quad)
+		ξ = math.Atanh(math.Hypot(z[1], h) / z[0])
+		sign = +1
+		return
+	}
+	if quad < 0 {
+		r = math.Sqrt(-quad)
+		ξ = math.Atanh(z[0] / math.Hypot(z[1], h))
+		sign = -1
+		return
+	}
+	r = z[0]
+	ξ = math.NaN()
+	sign = 0
+	return
+}

@@ -185,3 +185,24 @@ func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
 	}
 	return z.Scal(new(Hamilton).Mul(x, new(Hamilton).Conj(y)), 1/y.Quad())
 }
+
+// RectHamilton returns a Hamilton value made from given curvilinear
+// coordinates.
+func RectHamilton(r, θ1, θ2, θ3 float64) *Hamilton {
+	z := new(Hamilton)
+	z[0] = r * math.Cos(θ1)
+	z[1] = r * math.Sin(θ1) * math.Cos(θ2)
+	z[2] = r * math.Sin(θ1) * math.Sin(θ2) * math.Cos(θ3)
+	z[3] = r * math.Sin(θ1) * math.Sin(θ2) * math.Sin(θ3)
+	return z
+}
+
+// Curv returns the curvilinear coordinates of a Hamilton value.
+func (z *Hamilton) Curv() (r, θ1, θ2, θ3 float64) {
+	h := math.Hypot(z[2], z[3])
+	r = math.Sqrt(z.Quad())
+	θ1 = math.Atan2(math.Hypot(z[1], h), z[0])
+	θ2 = math.Atan2(h, z[1])
+	θ3 = math.Atan2(z[3], z[2])
+	return
+}
