@@ -1,5 +1,5 @@
-// Package qtr implements quaternionic arithmetic for Hamilton, Klein, and
-// Minkowski quaternions.
+// Package qtr implements arithmetic for Hamilton, Klein, and Minkowski
+// quaternions.
 package qtr
 
 const delta = 0.00000001
