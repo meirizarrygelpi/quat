@@ -6,7 +6,15 @@ import (
 	"strings"
 )
 
-var symbH = [4]string{"", "i", "j", "k"}
+var (
+	symbH = [4]string{"", "i", "j", "k"}
+
+	zeroH = &Hamilton{0, 0, 0, 0}
+	oneH  = &Hamilton{1, 0, 0, 0}
+	iH    = &Hamilton{0, 1, 0, 0}
+	jH    = &Hamilton{0, 0, 1, 0}
+	kH    = &Hamilton{0, 0, 0, 1}
+)
 
 // A Hamilton represents a Hamilton quaternion (i.e. a traditional quaternion)
 // as an ordered array of four float64 values.
@@ -171,7 +179,7 @@ func (z *Hamilton) Quad() float64 {
 // Inv sets z equal to the inverse of y, and returns z. If y is zero, then Inv
 // panics.
 func (z *Hamilton) Inv(y *Hamilton) *Hamilton {
-	if y.Equals(&Hamilton{0, 0, 0, 0}) {
+	if y.Equals(zeroH) {
 		panic("inverse of zero")
 	}
 	return z.Scal(new(Hamilton).Conj(y), 1/y.Quad())
@@ -180,7 +188,7 @@ func (z *Hamilton) Inv(y *Hamilton) *Hamilton {
 // Quo sets z equal to the quotient of x and y, and returns z. If y is zero,
 // then Quo panics.
 func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
-	if y.Equals(&Hamilton{0, 0, 0, 0}) {
+	if y.Equals(zeroH) {
 		panic("denominator is zero")
 	}
 	return z.Scal(new(Hamilton).Mul(x, new(Hamilton).Conj(y)), 1/y.Quad())
@@ -189,20 +197,26 @@ func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
 // RectHamilton returns a Hamilton value made from given curvilinear
 // coordinates.
 func RectHamilton(r, θ1, θ2, θ3 float64) *Hamilton {
-	z := new(Hamilton)
-	z[0] = r * math.Cos(θ1)
-	z[1] = r * math.Sin(θ1) * math.Cos(θ2)
-	z[2] = r * math.Sin(θ1) * math.Sin(θ2) * math.Cos(θ3)
-	z[3] = r * math.Sin(θ1) * math.Sin(θ2) * math.Sin(θ3)
-	return z
+	if notEquals(r, 0) {
+		z := new(Hamilton)
+		z[0] = r * math.Cos(θ1)
+		z[1] = r * math.Sin(θ1) * math.Cos(θ2)
+		z[2] = r * math.Sin(θ1) * math.Sin(θ2) * math.Cos(θ3)
+		z[3] = r * math.Sin(θ1) * math.Sin(θ2) * math.Sin(θ3)
+		return z
+	}
+	return zeroH
 }
 
 // Curv returns the curvilinear coordinates of a Hamilton value.
 func (z *Hamilton) Curv() (r, θ1, θ2, θ3 float64) {
+	if z.Equals(zeroH) {
+		return 0, math.NaN(), math.NaN(), math.NaN()
+	}
 	h := math.Hypot(z[2], z[3])
 	r = math.Sqrt(z.Quad())
-	θ1 = math.Atan2(math.Hypot(z[1], h), z[0])
-	θ2 = math.Atan2(h, z[1])
+	θ1 = math.Atan(math.Hypot(z[1], h) / z[0])
+	θ2 = math.Atan(h / z[1])
 	θ3 = math.Atan2(z[3], z[2])
 	return
 }

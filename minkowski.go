@@ -245,7 +245,7 @@ func RectMinkowski(r, ξ, θ1, θ2 float64, sign int) *Minkowski {
 func (z *Minkowski) Curv() (r, ξ, θ1, θ2 float64, sign int) {
 	quad := z.Quad()
 	h := math.Hypot(z[2], z[3])
-	θ1 = math.Atan2(z[1], h)
+	θ1 = math.Atan2(h, z[1])
 	θ2 = math.Atan2(z[3], z[2])
 	if quad > 0 {
 		r = math.Sqrt(quad)

@@ -37,6 +37,8 @@ func ExampleNewHamilton() {
 	// (1+2i+3j+4k)
 }
 
+func ExampleRectHamilton() {}
+
 func TestHamiltonAdd(t *testing.T) {}
 
 func TestHamiltonCommutator(t *testing.T) {}
@@ -44,6 +46,8 @@ func TestHamiltonCommutator(t *testing.T) {}
 func TestHamiltonConj(t *testing.T) {}
 
 func TestHamiltonCopy(t *testing.T) {}
+
+func TestHamiltonCurv(t *testing.T) {}
 
 func TestHamiltonEquals(t *testing.T) {}
 
