@@ -3,39 +3,43 @@ package qtr
 import (
 	"fmt"
 	"math"
+	"math/cmplx"
 	"strings"
 )
 
 var (
 	symbH = [4]string{"", "i", "j", "k"}
 
-	zeroH = &Hamilton{0, 0, 0, 0}
-	oneH  = &Hamilton{1, 0, 0, 0}
-	iH    = &Hamilton{0, 1, 0, 0}
-	jH    = &Hamilton{0, 0, 1, 0}
-	kH    = &Hamilton{0, 0, 0, 1}
+	zeroH = &Hamilton{0, 0}
+	oneH  = &Hamilton{1, 0}
+	iH    = &Hamilton{1i, 0}
+	jH    = &Hamilton{0, 1}
+	kH    = &Hamilton{0, 1i}
 )
 
 // A Hamilton represents a Hamilton quaternion (i.e. a traditional quaternion)
-// as an ordered array of four float64 values.
-type Hamilton [4]float64
+// as an ordered array of two complex128 values.
+type Hamilton [2]complex128
 
 // String returns the string representation of a Hamilton value. If z
 // corresponds to the Hamilton quaternion a + bi + cj + dk, then the string is
 // "(a+bi+cj+dk)", similar to complex128 values.
 func (z *Hamilton) String() string {
+	v := make([]float64, 4)
+	v[0], v[1] = real(z[0]), imag(z[0])
+	v[2], v[3] = real(z[1]), imag(z[1])
 	a := make([]string, 9)
 	a[0] = "("
-	a[1] = fmt.Sprintf("%g", z[0])
+	a[1] = fmt.Sprintf("%g", v[0])
 	i := 1
 	for j := 2; j < 8; j = j + 2 {
 		switch {
-		case math.Signbit(z[i]):
-			a[j] = fmt.Sprintf("%g", z[i])
-		case math.IsInf(z[i], +1):
+		case math.Signbit(v[i]):
+			a[j] = fmt.Sprintf("%g", v[i])
+		case math.IsInf(v[i], +1):
 			a[j] = "+Inf"
 		default:
-			a[j] = fmt.Sprintf("+%g", z[i])
+			a[j] = fmt.Sprintf("+%g", v[i])
 		}
 		a[j+1] = symbH[i]
 		i++
@@ -46,19 +50,19 @@ func (z *Hamilton) String() string {
 
 // Equals returns true if y and z are equal.
 func (z *Hamilton) Equals(y *Hamilton) bool {
-	for i, v := range y {
-		if notEquals(v, z[i]) {
-			return false
-		}
+	if notEquals(real(z[0]), real(y[0])) || notEquals(imag(z[0]), imag(y[0])) {
+		return false
+	}
+	if notEquals(real(z[1]), real(y[1])) || notEquals(imag(z[1]), imag(y[1])) {
+		return false
 	}
 	return true
 }
 
 // Copy copies y onto z, and returns z.
 func (z *Hamilton) Copy(y *Hamilton) *Hamilton {
-	for i, v := range y {
-		z[i] = v
-	}
+	z[0] = y[0]
+	z[1] = y[1]
 	return z
 }
 
@@ -66,85 +70,92 @@ func (z *Hamilton) Copy(y *Hamilton) *Hamilton {
 // float64 values.
 func NewHamilton(a, b, c, d float64) *Hamilton {
 	z := new(Hamilton)
-	z[0] = a
-	z[1] = b
-	z[2] = c
-	z[3] = d
+	z[0] = complex(a, b)
+	z[1] = complex(c, d)
 	return z
 }
 
 // IsHamiltonInf returns true if any of the components of z are infinite.
 func (z *Hamilton) IsHamiltonInf() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return true
-		}
+	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+		return true
 	}
 	return false
 }
 
 // HamiltonInf returns a pointer to a Hamilton quaternionic infinity value.
 func HamiltonInf(a, b, c, d int) *Hamilton {
-	return NewHamilton(math.Inf(a), math.Inf(b), math.Inf(c), math.Inf(d))
+	z := new(Hamilton)
+	z[0] = complex(math.Inf(a), math.Inf(b))
+	z[1] = complex(math.Inf(c), math.Inf(d))
+	return z
 }
 
 // IsHamiltonNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Hamilton) IsHamiltonNaN() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return false
-		}
+	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+		return false
 	}
-	for _, v := range z {
-		if math.IsNaN(v) {
-			return true
-		}
+	if cmplx.IsNaN(z[0]) || cmplx.IsNaN(z[1]) {
+		return true
 	}
 	return false
 }
 
 // HamiltonNaN returns a pointer to a Hamilton quaternionic NaN value.
 func HamiltonNaN() *Hamilton {
-	nan := math.NaN()
-	return NewHamilton(nan, nan, nan, nan)
+	nan := cmplx.NaN()
+	z := new(Hamilton)
+	z[0] = nan
+	z[1] = nan
+	return z
 }
 
-// Scal sets z equal to y scaled by a, and returns z.
-func (z *Hamilton) Scal(y *Hamilton, a float64) *Hamilton {
-	for i, v := range y {
-		z[i] = a * v
-	}
+// Scal sets z equal to y scaled by a (with a being a complex128), and returns
+// z.
+//
+// This is a special case of Mul:
+// 		Scal(y, a) = Mul(y, Hamilton{a, 0})
+func (z *Hamilton) Scal(y *Hamilton, a complex128) *Hamilton {
+	z[0] = y[0] * a
+	z[1] = y[1] * a
+	return z
+}
+
+// Dil sets z equal to the dilation of y by a, and returns z.
+//
+// This is a special case of Mul:
+// 		Dil(y, a) = Mul(y, Hamilton{complex(a, 0), 0})
+func (z *Hamilton) Dil(y *Hamilton, a float64) *Hamilton {
+	z[0] = y[0] * complex(a, 0)
+	z[1] = y[1] * complex(a, 0)
 	return z
 }
 
 // Neg sets z equal to the negative of y, and returns z.
 func (z *Hamilton) Neg(y *Hamilton) *Hamilton {
-	return z.Scal(y, -1)
+	return z.Dil(y, -1)
 }
 
 // Conj sets z equal to the conjugate of y, and returns z.
 func (z *Hamilton) Conj(y *Hamilton) *Hamilton {
-	z[0] = y[0]
-	for i, v := range y[1:] {
-		z[i+1] = -v
-	}
+	z[0] = cmplx.Conj(y[0])
+	z[1] = -y[1]
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Hamilton) Add(x, y *Hamilton) *Hamilton {
-	for i, v := range x {
-		z[i] = v + y[i]
-	}
+	z[0] = x[0] + y[0]
+	z[1] = x[1] + y[1]
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
-	for i, v := range x {
-		z[i] = v - y[i]
-	}
+	z[0] = x[0] - y[0]
+	z[1] = x[1] - y[1]
 	return z
 }
 
@@ -159,10 +170,8 @@ func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
 func (z *Hamilton) Mul(x, y *Hamilton) *Hamilton {
 	p := new(Hamilton).Copy(x)
 	q := new(Hamilton).Copy(y)
-	z[0] = (p[0] * q[0]) - (p[1] * q[1]) - (p[2] * q[2]) - (p[3] * q[3])
-	z[1] = (p[0] * q[1]) + (p[1] * q[0]) + (p[2] * q[3]) - (p[3] * q[2])
-	z[2] = (p[0] * q[2]) - (p[1] * q[3]) + (p[2] * q[0]) + (p[3] * q[1])
-	z[3] = (p[0] * q[3]) + (p[1] * q[2]) - (p[2] * q[1]) + (p[3] * q[0])
+	z[0] = (p[0] * q[0]) - (cmplx.Conj(q[1]) * p[1])
+	z[1] = (p[0] * q[1]) + (p[1] * cmplx.Conj(q[0]))
 	return z
 }
 
@@ -173,7 +182,8 @@ func (z *Hamilton) Commutator(x, y *Hamilton) *Hamilton {
 
 // Quad returns the non-negative quadrance of z.
 func (z *Hamilton) Quad() float64 {
-	return (new(Hamilton).Mul(z, new(Hamilton).Conj(z)))[0]
+	a, b := cmplx.Abs(z[0]), cmplx.Abs(z[1])
+	return (a * a) + (b * b)
 }
 
 // Inv sets z equal to the inverse of y, and returns z. If y is zero, then Inv
@@ -182,7 +192,7 @@ func (z *Hamilton) Inv(y *Hamilton) *Hamilton {
 	if y.Equals(zeroH) {
 		panic("inverse of zero")
 	}
-	return z.Scal(new(Hamilton).Conj(y), 1/y.Quad())
+	return z.Dil(new(Hamilton).Conj(y), 1/y.Quad())
 }
 
 // Quo sets z equal to the quotient of x and y, and returns z. If y is zero,
@@ -191,7 +201,7 @@ func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
 	if y.Equals(zeroH) {
 		panic("denominator is zero")
 	}
-	return z.Scal(new(Hamilton).Mul(x, new(Hamilton).Conj(y)), 1/y.Quad())
+	return z.Dil(new(Hamilton).Mul(x, new(Hamilton).Conj(y)), 1/y.Quad())
 }
 
 // RectHamilton returns a Hamilton value made from given curvilinear
@@ -199,10 +209,14 @@ func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
 func RectHamilton(r, θ1, θ2, θ3 float64) *Hamilton {
 	if notEquals(r, 0) {
 		z := new(Hamilton)
-		z[0] = r * math.Cos(θ1)
-		z[1] = r * math.Sin(θ1) * math.Cos(θ2)
-		z[2] = r * math.Sin(θ1) * math.Sin(θ2) * math.Cos(θ3)
-		z[3] = r * math.Sin(θ1) * math.Sin(θ2) * math.Sin(θ3)
+		z[0] = complex(
+			r*math.Cos(θ1),
+			r*math.Sin(θ1)*math.Cos(θ2),
+		)
+		z[1] = complex(
+			r*math.Sin(θ1)*math.Sin(θ2)*math.Cos(θ3),
+			r*math.Sin(θ1)*math.Sin(θ2)*math.Sin(θ3),
+		)
 		return z
 	}
 	return zeroH
@@ -213,10 +227,10 @@ func (z *Hamilton) Curv() (r, θ1, θ2, θ3 float64) {
 	if z.Equals(zeroH) {
 		return 0, math.NaN(), math.NaN(), math.NaN()
 	}
-	h := math.Hypot(z[2], z[3])
+	h := cmplx.Abs(z[1])
 	r = math.Sqrt(z.Quad())
-	θ1 = math.Atan(math.Hypot(z[1], h) / z[0])
-	θ2 = math.Atan(h / z[1])
-	θ3 = math.Atan2(z[3], z[2])
+	θ1 = math.Atan(math.Hypot(imag(z[0]), h) / real(z[0]))
+	θ2 = math.Atan(h / imag(z[0]))
+	θ3 = math.Atan2(imag(z[1]), real(z[1]))
 	return
 }
