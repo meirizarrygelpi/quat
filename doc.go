@@ -1,4 +1,4 @@
-// Package qtr implements arithmetic for Hamilton, Klein, and Minkowski
+// Package qtr implements arithmetic for Hamilton, Cockle, and Macfarlane
 // quaternions.
 package qtr
 
