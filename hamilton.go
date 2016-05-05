@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	symbH = [4]string{"", "i", "j", "k"}
+	symbHamilton = [4]string{"", "i", "j", "k"}
 
 	zeroH = &Hamilton{0, 0}
 	oneH  = &Hamilton{1, 0}
@@ -41,7 +41,7 @@ func (z *Hamilton) String() string {
 		default:
 			a[j] = fmt.Sprintf("+%g", v[i])
 		}
-		a[j+1] = symbH[i]
+		a[j+1] = symbHamilton[i]
 		i++
 	}
 	a[8] = ")"
