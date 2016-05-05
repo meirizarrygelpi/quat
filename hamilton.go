@@ -75,8 +75,8 @@ func NewHamilton(a, b, c, d float64) *Hamilton {
 	return z
 }
 
-// IsHamiltonInf returns true if any of the components of z are infinite.
-func (z *Hamilton) IsHamiltonInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Hamilton) IsInf() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return true
 	}
@@ -91,9 +91,9 @@ func HamiltonInf(a, b, c, d int) *Hamilton {
 	return z
 }
 
-// IsHamiltonNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Hamilton) IsHamiltonNaN() bool {
+func (z *Hamilton) IsNaN() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return false
 	}

@@ -75,8 +75,8 @@ func NewCockle(a, b, c, d float64) *Cockle {
 	return z
 }
 
-// IsCockleInf returns true if any of the components of z are infinite.
-func (z *Cockle) IsCockleInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Cockle) IsInf() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return true
 	}
@@ -91,9 +91,9 @@ func CockleInf(a, b, c, d int) *Cockle {
 	return z
 }
 
-// IsCockleNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Cockle) IsCockleNaN() bool {
+func (z *Cockle) IsNaN() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return false
 	}

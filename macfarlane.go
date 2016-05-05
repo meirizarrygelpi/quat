@@ -65,8 +65,8 @@ func NewMacfarlane(a, b, c, d float64) *Macfarlane {
 	return z
 }
 
-// IsMacfarlaneInf returns true if any of the components of z are infinite.
-func (z *Macfarlane) IsMacfarlaneInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Macfarlane) IsInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return true
@@ -80,9 +80,9 @@ func MacfarlaneInf(a, b, c, d int) *Macfarlane {
 	return NewMacfarlane(math.Inf(a), math.Inf(b), math.Inf(c), math.Inf(d))
 }
 
-// IsMacfarlaneNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Macfarlane) IsMacfarlaneNaN() bool {
+func (z *Macfarlane) IsNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return false
