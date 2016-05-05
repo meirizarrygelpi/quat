@@ -1,8 +1,8 @@
-# qtr
+# quat
 
-Package `qtr` brings [Hamilton quaternions](https://en.wikipedia.org/wiki/Quaternion), [Macfarlane (or hyperbolic) quaternions](https://en.wikipedia.org/wiki/Hyperbolic_quaternion), and [Cockle (or split-) quaternions](https://en.wikipedia.org/wiki/Split-quaternion) to Go. It borrows heavily from the `math`, `math/cmplx`, and `math/big` packages.
+Package `quat` brings [Hamilton quaternions](https://en.wikipedia.org/wiki/Quaternion), [Macfarlane (or hyperbolic) quaternions](https://en.wikipedia.org/wiki/Hyperbolic_quaternion), and [Cockle (or split-) quaternions](https://en.wikipedia.org/wiki/Split-quaternion) to Go. It borrows heavily from the `math`, `math/cmplx`, and `math/big` packages.
 
-[![Go Report Card](https://goreportcard.com/badge/gojp/goreportcard)](https://goreportcard.com/report/github.com/meirizarrygelpi/qtr) [![GoDoc](https://godoc.org/github.com/meirizarrygelpi/qtr?status.svg)](https://godoc.org/github.com/meirizarrygelpi/qtr)
+[![Go Report Card](https://goreportcard.com/badge/gojp/goreportcard)](https://goreportcard.com/report/github.com/meirizarrygelpi/quat) [![GoDoc](https://godoc.org/github.com/meirizarrygelpi/quat?status.svg)](https://godoc.org/github.com/meirizarrygelpi/quat)
 
 ## To Do
 

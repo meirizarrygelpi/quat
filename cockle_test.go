@@ -1,4 +1,4 @@
-package qtr
+package quat
 
 import (
 	"fmt"

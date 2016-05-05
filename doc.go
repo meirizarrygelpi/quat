@@ -1,6 +1,6 @@
-// Package qtr implements arithmetic for Hamilton, Cockle, and Macfarlane
+// Package quat implements arithmetic for Hamilton, Cockle, and Macfarlane
 // quaternions.
-package qtr
+package quat
 
 const delta = 0.00000001
 
