@@ -24,13 +24,41 @@ var (
 // as an ordered array of two complex128 values.
 type Hamilton [2]complex128
 
+// Re returns the Cayley-Dickson real part of z, a complex128 value.
+func (z *Hamilton) Re() complex128 {
+	return z[0]
+}
+
+// Im returns the Cayley-Dickson imaginary part of z, a complex128 value.
+func (z *Hamilton) Im() complex128 {
+	return z[1]
+}
+
+// SetRe sets the Cayley-Dickson real part of z equal to a given complex128
+// value.
+func (z *Hamilton) SetRe(a complex128) {
+	z[0] = a
+}
+
+// SetIm sets the Cayley-Dickson imaginary part of z equal to a given
+// complex128 value.
+func (z *Hamilton) SetIm(b complex128) {
+	z[1] = b
+}
+
+// Cartesian returns the four float64 components of z.
+func (z *Hamilton) Cartesian() (a, b, c, d float64) {
+	a, b = real(z.Re()), imag(z.Re())
+	c, d = real(z.Im()), imag(z.Im())
+	return
+}
+
 // String returns the string representation of a Hamilton value. If z
 // corresponds to the Hamilton quaternion a + bi + cj + dk, then the string is
 // "(a+bi+cj+dk)", similar to complex128 values.
 func (z *Hamilton) String() string {
 	v := make([]float64, 4)
-	v[0], v[1] = real(z[0]), imag(z[0])
-	v[2], v[3] = real(z[1]), imag(z[1])
+	v[0], v[1], v[2], v[3] = z.Cartesian()
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", v[0])
@@ -53,10 +81,7 @@ func (z *Hamilton) String() string {
 
 // Equals returns true if y and z are equal.
 func (z *Hamilton) Equals(y *Hamilton) bool {
-	if notEquals(real(z[0]), real(y[0])) || notEquals(imag(z[0]), imag(y[0])) {
-		return false
-	}
-	if notEquals(real(z[1]), real(y[1])) || notEquals(imag(z[1]), imag(y[1])) {
+	if z.Re() != y.Re() || z.Im() != y.Im() {
 		return false
 	}
 	return true
@@ -64,8 +89,8 @@ func (z *Hamilton) Equals(y *Hamilton) bool {
 
 // Copy copies y onto z, and returns z.
 func (z *Hamilton) Copy(y *Hamilton) *Hamilton {
-	z[0] = y[0]
-	z[1] = y[1]
+	z.SetRe(y.Re())
+	z.SetIm(y.Im())
 	return z
 }
 
@@ -73,14 +98,14 @@ func (z *Hamilton) Copy(y *Hamilton) *Hamilton {
 // float64 values.
 func NewHamilton(a, b, c, d float64) *Hamilton {
 	z := new(Hamilton)
-	z[0] = complex(a, b)
-	z[1] = complex(c, d)
+	z.SetRe(complex(a, b))
+	z.SetIm(complex(c, d))
 	return z
 }
 
 // IsInf returns true if any of the components of z are infinite.
 func (z *Hamilton) IsInf() bool {
-	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+	if cmplx.IsInf(z.Re()) || cmplx.IsInf(z.Im()) {
 		return true
 	}
 	return false
@@ -89,18 +114,18 @@ func (z *Hamilton) IsInf() bool {
 // HamiltonInf returns a pointer to a Hamilton quaternionic infinity value.
 func HamiltonInf(a, b, c, d int) *Hamilton {
 	z := new(Hamilton)
-	z[0] = complex(math.Inf(a), math.Inf(b))
-	z[1] = complex(math.Inf(c), math.Inf(d))
+	z.SetRe(complex(math.Inf(a), math.Inf(b)))
+	z.SetIm(complex(math.Inf(c), math.Inf(d)))
 	return z
 }
 
 // IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Hamilton) IsNaN() bool {
-	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+	if cmplx.IsInf(z.Re()) || cmplx.IsInf(z.Im()) {
 		return false
 	}
-	if cmplx.IsNaN(z[0]) || cmplx.IsNaN(z[1]) {
+	if cmplx.IsNaN(z.Re()) || cmplx.IsNaN(z.Im()) {
 		return true
 	}
 	return false
@@ -110,8 +135,8 @@ func (z *Hamilton) IsNaN() bool {
 func HamiltonNaN() *Hamilton {
 	nan := cmplx.NaN()
 	z := new(Hamilton)
-	z[0] = nan
-	z[1] = nan
+	z.SetRe(nan)
+	z.SetIm(nan)
 	return z
 }
 
@@ -121,8 +146,8 @@ func HamiltonNaN() *Hamilton {
 // This is a special case of Mul:
 // 		Scal(y, a) = Mul(y, Hamilton{a, 0})
 func (z *Hamilton) Scal(y *Hamilton, a complex128) *Hamilton {
-	z[0] = y[0] * a
-	z[1] = y[1] * a
+	z.SetRe(y.Re() * a)
+	z.SetIm(y.Im() * a)
 	return z
 }
 
@@ -131,8 +156,8 @@ func (z *Hamilton) Scal(y *Hamilton, a complex128) *Hamilton {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Hamilton{complex(a, 0), 0})
 func (z *Hamilton) Dil(y *Hamilton, a float64) *Hamilton {
-	z[0] = y[0] * complex(a, 0)
-	z[1] = y[1] * complex(a, 0)
+	z.SetRe(y.Re() * complex(a, 0))
+	z.SetIm(y.Im() * complex(a, 0))
 	return z
 }
 
@@ -143,22 +168,22 @@ func (z *Hamilton) Neg(y *Hamilton) *Hamilton {
 
 // Conj sets z equal to the conjugate of y, and returns z.
 func (z *Hamilton) Conj(y *Hamilton) *Hamilton {
-	z[0] = cmplx.Conj(y[0])
-	z[1] = -y[1]
+	z.SetRe(cmplx.Conj(y.Re()))
+	z.SetIm(y.Im() * -1)
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Hamilton) Add(x, y *Hamilton) *Hamilton {
-	z[0] = x[0] + y[0]
-	z[1] = x[1] + y[1]
+	z.SetRe(x.Re() + y.Re())
+	z.SetIm(x.Im() + y.Im())
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
-	z[0] = x[0] - y[0]
-	z[1] = x[1] - y[1]
+	z.SetRe(x.Re() - y.Re())
+	z.SetIm(x.Im() - y.Im())
 	return z
 }
 
@@ -173,8 +198,14 @@ func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
 func (z *Hamilton) Mul(x, y *Hamilton) *Hamilton {
 	p := new(Hamilton).Copy(x)
 	q := new(Hamilton).Copy(y)
-	z[0] = (p[0] * q[0]) - (cmplx.Conj(q[1]) * p[1])
-	z[1] = (p[0] * q[1]) + (p[1] * cmplx.Conj(q[0]))
+	z.SetRe(
+		(p.Re() * q.Re()) -
+			(cmplx.Conj(q.Im()) * p.Im()),
+	)
+	z.SetIm(
+		(q.Im() * p.Re()) +
+			(p.Im() * cmplx.Conj(q.Re())),
+	)
 	return z
 }
 
@@ -185,7 +216,7 @@ func (z *Hamilton) Commutator(x, y *Hamilton) *Hamilton {
 
 // Quad returns the non-negative quadrance of z.
 func (z *Hamilton) Quad() float64 {
-	a, b := cmplx.Abs(z[0]), cmplx.Abs(z[1])
+	a, b := cmplx.Abs(z.Re()), cmplx.Abs(z.Im())
 	return (a * a) + (b * b)
 }
 
@@ -212,14 +243,14 @@ func (z *Hamilton) Quo(x, y *Hamilton) *Hamilton {
 func RectHamilton(r, θ1, θ2, θ3 float64) *Hamilton {
 	if notEquals(r, 0) {
 		z := new(Hamilton)
-		z[0] = complex(
+		z.SetRe(complex(
 			r*math.Cos(θ1),
 			r*math.Sin(θ1)*math.Cos(θ2),
-		)
-		z[1] = complex(
+		))
+		z.SetIm(complex(
 			r*math.Sin(θ1)*math.Sin(θ2)*math.Cos(θ3),
 			r*math.Sin(θ1)*math.Sin(θ2)*math.Sin(θ3),
-		)
+		))
 		return z
 	}
 	return zeroH
@@ -230,10 +261,10 @@ func (z *Hamilton) Curv() (r, θ1, θ2, θ3 float64) {
 	if z.Equals(zeroH) {
 		return 0, math.NaN(), math.NaN(), math.NaN()
 	}
-	h := cmplx.Abs(z[1])
+	h := cmplx.Abs(z.Im())
 	r = math.Sqrt(z.Quad())
-	θ1 = math.Atan(math.Hypot(imag(z[0]), h) / real(z[0]))
+	θ1 = math.Atan(math.Hypot(imag(z.Re()), h) / real(z.Re()))
 	θ2 = math.Atan(h / imag(z[0]))
-	θ3 = math.Atan2(imag(z[1]), real(z[1]))
+	θ3 = math.Atan2(imag(z.Im()), real(z.Im()))
 	return
 }
